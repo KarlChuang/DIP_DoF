@@ -9,3 +9,4 @@ temp.py
 **/__pycache__
 */__pycache__
 .gitignore
+data_send

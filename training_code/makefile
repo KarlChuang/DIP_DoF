@@ -2,9 +2,20 @@ train_%:
 	python train.py \
 	--num_epochs 120 \
 	--arch $* \
-	--lr 0.001 \
+	--lr 0.005 \
 	--train_batch_size 128 \
 	--print_freq 100
+
+continue_%:
+	python train.py \
+	--num_epochs 120 \
+	--arch $* \
+	--lr 0.00005 \
+	--train_batch_size 128 \
+	--print_freq 100 \
+	--pretrained \
+	--source_dir ../result/mobile2/checkpoint/ \
+	--source_file model_47.pt
 
 setup_%:
 	-mkdir ../result

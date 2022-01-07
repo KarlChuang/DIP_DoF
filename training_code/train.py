@@ -26,7 +26,7 @@ device = torch.device(f"cuda:{args.gpus[0]}")
 
 checkpoint = utils.checkpoint(args)
 
-def main():
+def main(classnum):
 
     start_epoch = 0
     best_acc = 0.0
@@ -37,7 +37,8 @@ def main():
     # data loader
     loader = dataPreparer.Data(args, 
                                data_path=args.src_data_path, 
-                               label_path=args.src_label_path)
+                               label_path=args.src_label_path,
+                               classnum=classnum)
     data_loader = loader.loader_train
     data_loader_eval = loader.loader_test
     data_loader_test = loader.loader_final_test
@@ -48,7 +49,7 @@ def main():
     # load training model
     # model = import_module(f'model.{args.arch}').__dict__[args.model]().to(device)
     model = models.mobilenet_v2()
-    model.classifier[1] = nn.Linear(model.last_channel, 20)
+    model.classifier[1] = nn.Linear(model.last_channel, classnum)
     model.features[0][0] = nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1, bias=False)
     model.to(device)
 
@@ -268,5 +269,5 @@ def inference(args, loader_test, model, output_file_name):
   
 
 if __name__ == '__main__':
-    main()
+    main(10)
 

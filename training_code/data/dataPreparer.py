@@ -14,7 +14,7 @@ from PIL import Image, ImageFilter
 
 class DataPreparation(Dataset):
     def __init__(self, root=args, data_path=None, label_path=None,
-                 transform=None, target_transform=None):
+                 transform=None, target_transform=None, classnum=20):
         
         self.root = root
         self.data_path = data_path 
@@ -24,7 +24,7 @@ class DataPreparation(Dataset):
         self.target_transform = target_transform
         
         ## preprocess files
-        self.preprocess(self.data_path, self.label_path)
+        self.preprocess(self.data_path, self.label_path, classnum)
         
 
     def __len__(self):
@@ -52,18 +52,18 @@ class DataPreparation(Dataset):
 
         return image, label, data_file
     
-    def preprocess(self, data_path, label_path):
+    def preprocess(self, data_path, label_path, classnum):
         self.data_files = os.listdir(data_path)
         self.data_files.sort()
-        # self.data_files = self.data_files[:int(128 * 300)]
-        # print(self.data_files)
-        
+
         if label_path is not None:
             self.file_labels = pd.read_csv(label_path)
-        
+            self.file_labels = self.file_labels.loc[self.file_labels['label'] < classnum].reset_index(drop=True)
+            self.data_files = self.file_labels['file'].tolist()
+
 
 class Data:
-    def __init__(self, args, data_path, label_path):
+    def __init__(self, args, data_path, label_path, classnum):
         
 
         # transform_train = transforms.Compose([
@@ -84,7 +84,8 @@ class Data:
         train_dataset = DataPreparation(root=args,  
                                         data_path=data_path,
                                         label_path=label_path,
-                                        transform=transform)
+                                        transform=transform,
+                                        classnum=classnum)
         
         self.loader_train = DataLoader(
             train_dataset, batch_size=args.train_batch_size, shuffle=True, 
@@ -104,7 +105,8 @@ class Data:
         test_dataset = DataPreparation(root=args,  
                                        data_path=test_data_path,
                                        label_path=test_label_path,
-                                       transform=transform)
+                                       transform=transform,
+                                       classnum=classnum)
         
         self.loader_test = DataLoader(
             test_dataset, batch_size=args.train_batch_size, shuffle=False, 
@@ -114,7 +116,8 @@ class Data:
         final_test_dataset = DataPreparation(root=args,  
                                              data_path=final_test_data_path,
                                              label_path=final_test_label_path,
-                                             transform=transform)
+                                             transform=transform,
+                                             classnum=classnum)
         self.loader_final_test = DataLoader(
             final_test_dataset, batch_size=args.final_test_batch_size, shuffle=False, 
             num_workers=2
