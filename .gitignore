@@ -1,5 +1,6 @@
 data
-result/mobilenet/checkpoint/*
-!result/mobilenet/checkpoint/model_best.pt
+result/*/checkpoint/*
+!result/*/checkpoint/model_best.pt
 training_code/experiment
 !training_code/data
+**/__pycache__

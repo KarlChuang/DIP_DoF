@@ -15,7 +15,7 @@ def Laplacian(img):
     im2 = img.filter(kernel)
     return im2
 
-def sharpe(dir, filename):
+def sharpe(dir, filename, label):
     img = Image.open(path.join(dir, filename)).convert('L')
     print(path.join(dir, filename))
     # crop
@@ -26,68 +26,119 @@ def sharpe(dir, filename):
         while left + 32 <= width:
             imgCrop = img.crop((top, left, top + 32, left + 32))
             left += 32
-            imgCrop = Gaussian33(imgCrop)
-            imgLP = Laplacian(imgCrop)
+            imgLP = Gaussian33(imgCrop)
+            imgLP = Laplacian(imgLP)
             imgLP = np.array(imgLP)
-            if np.var(imgLP) < 1000:
+            shar = np.var(imgLP)
+            if shar < 2000:
                 continue
             fn = str(idx) + '_' + filename
             dd = dir.replace('image', 'imageSharp')
             imgCrop.save(path.join(dd, fn))
+            label['file'].append(fn)
+            label['sharp'].append(shar)
             idx += 1
         top += 32
 
-# def blur(dir, filename)
-#     img = Image.open(path.join(dir, filename)).convert('L')
-#     print(path.join(dir, filename))
-#     for z in range(50):
-#         newArr = [gaussian_filter(imgArrC, sigma=z * 0.2) for imgArrC in imgArr]
-#         newArr = np.array(newArr)
-#         newArr = np.transpose(newArr, (1, 2, 0))
-#         newArr.astype(int)
-#         data = Image.fromarray(newArr, 'RGB')
-#         fn = str(z) + '_' + filename
-#         fn = fn.replace('jpg', 'png') 
-#         dd = dir.replace('image', 'imageBlur')
-#         gt['file'].append(fn)
-#         gt['label'].append(z)
-#         data.save(path.join(dd, fn))
 
+def sharpAll(rootdir):
+    label = { 'file': [], 'sharp': [] }
+    labelPath = rootdir.replace('image', 'sharp.csv')
+    for subdir, dirs, files in walk(rootdir):
+        for file in files:
+            pd.DataFrame(label).to_csv(labelPath, index=False)
+            sharpe(subdir, file, label)
+
+def select_sharp(sharp):
+    rootdir = path.join('data', 'train', 'image')
+    labelPath = rootdir.replace('image', 'sharp2.csv')
+    df = pd.read_csv(labelPath)
+    data = df.loc[df['sharp'] > sharp].reset_index(drop=True)
+    print(data.shape)
+    labelPath = rootdir.replace('image', 'sharp3.csv')
+    data.to_csv(labelPath, index=False)
+
+    rootdir = path.join('data', 'test', 'image')
+    labelPath = rootdir.replace('image', 'sharp2.csv')
+    df = pd.read_csv(labelPath)
+    data = df.loc[df['sharp'] > sharp].reset_index(drop=True)
+    print(data.shape)
+    labelPath = rootdir.replace('image', 'sharp3.csv')
+    data.to_csv(labelPath, index=False)
+
+    rootdir = path.join('data', 'valid', 'image')
+    labelPath = rootdir.replace('image', 'sharp2.csv')
+    df = pd.read_csv(labelPath)
+    data = df.loc[df['sharp'] > sharp].reset_index(drop=True)
+    print(data.shape)
+    labelPath = rootdir.replace('image', 'sharp3.csv')
+    data.to_csv(labelPath, index=False)
+
+def move_to_valid():
+    rootdir = path.join('data', 'train', 'image')
+    labelPath = rootdir.replace('image', 'sharp2.csv')
+    df = pd.read_csv(labelPath)
+    N = int(df.shape[0] / 5 * 4)
+    train_df = df.iloc[:N,:].reset_index(drop=True)
+    valid_df = df.iloc[N:,:].reset_index(drop=True)
+    train_df.to_csv(labelPath, index=False)
+    labelPath = labelPath.replace('train', 'valid')
+    valid_df.to_csv(labelPath, index=False)
+
+    from_dir = rootdir.replace('image', 'imageSharp')
+    to_dir = from_dir.replace('train', 'valid')
+    for file in valid_df['file']:
+        print(file)
+        shutil.move(path.join(from_dir, file), path.join(to_dir, file))
+
+def check(rootdir):
+    for subdir, dirs, files in walk(rootdir):
+        print(len(files))
+    sharpfile = rootdir.replace('imageBlur', 'groundTruth.csv')
+    df = pd.read_csv(sharpfile)
+    print(df.shape)
+
+def createLabel(rootdir):
+    sharpfile = rootdir.replace('imageSharp', 'sharp3.csv')
+    df = pd.read_csv(sharpfile)
+    labelDf = { 'file': [], 'label': [] }
+    for file in df['file']:
+        blur(rootdir, file, labelDf)
+    trainGT = pd.DataFrame(labelDf)
+    trainGT.to_csv(rootdir.replace('imageSharp', 'groundTruth.csv'), index=False)
+
+
+def blur(dir, filename, gt):
+    img = Image.open(path.join(dir, filename)).convert('L')
+    # print(path.join(dir, filename)
+    imgArr = np.array(img)
+    for i in range(20):
+        z = i
+        newArr = gaussian_filter(imgArr, sigma=z)
+        newArr.astype(int)
+        data = Image.fromarray(newArr, 'L')
+        fn = str(i) + '_' + filename
+        dd = dir.replace('imageSharp', 'imageBlur')
+        gt['file'].append(fn)
+        gt['label'].append(z)
+        data.save(path.join(dd, fn))
 
 if __name__ == '__main__':
     # rootdir = path.join('data', 'train', 'image')
-    # for subdir, dirs, files in walk(rootdir):
-    #     for file in files:
-    #         sharpe(subdir, file)
+    # sharpAll(rootdir)
 
-    # rootdir = path.join('data', 'val', 'image')
-    # for subdir, dirs, files in walk(rootdir):
-    #     for file in files:
-    #         sharpe(subdir, file)
+    # rootdir = path.join('data', 'test', 'image')
+    # sharpAll(rootdir)
 
-    trainGT = { 'file': [], 'label': [] }
-    rootdir = path.join('data', 'train', 'imageSharp')
-    for subdir, dirs, files in walk(rootdir):
-        print(len(files))
-        # for file in files:
-        #     sharpe(subdir, file)
-    # trainGT = pd.DataFrame(trainGT)
-    # trainGT.to_csv(rootdir.replace('imageSharp', 'groundTruth.csv'))
+    # select_sharp(6500)
+    # move_to_valid()
 
-    testGT = { 'file': [], 'label': [] }
-    rootdir = path.join('data', 'valid', 'imageSharp')
-    for subdir, dirs, files in walk(rootdir):
-        print(len(files))
-    #     for file in files:
-    #         sharpe(subdir, file)
-    # testGT = pd.DataFrame(testGT)
-    # testGT.to_csv(rootdir.replace('imageSharp', 'groundTruth.csv'))
 
-    testGT = { 'file': [], 'label': [] }
-    rootdir = path.join('data', 'test', 'imageSharp')
-    for subdir, dirs, files in walk(rootdir):
-        print(len(files))
-    #     for file in files:
-    #         sharpe(subdir, file)
-    # testGT = pd.DataFrame(testGT)
-    # testGT.to_csv(rootdir.replace('imageSharp', 'groundTruth.csv'))
+
+    createLabel(path.join('data', 'train', 'imageSharp'))
+    createLabel(path.join('data', 'valid', 'imageSharp'))
+    createLabel(path.join('data', 'test', 'imageSharp'))
+
+    check(path.join('data', 'train', 'imageBlur'))
+    check(path.join('data', 'valid', 'imageBlur'))
+    check(path.join('data', 'test', 'imageBlur'))
