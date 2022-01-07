@@ -6,7 +6,7 @@ train_%:
 	--train_batch_size 128 \
 	--print_freq 100
 
-test_setup_%:
+setup_%:
 	-mkdir ../result
 	-mkdir ../result/$*
 	cp -R ./experiment/train/checkpoint ../result/$*/

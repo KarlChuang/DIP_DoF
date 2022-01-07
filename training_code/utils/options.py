@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(description = 'Quantization')
 ## Warm-up 
 parser.add_argument('--gpus', type = int, nargs = '+', default = [0], help = 'Select gpu to use')
 
-parser.add_argument('--src_data_path', type = str, default = '../data/train/imageSharp', help = 'The directory where the input data is stored.')
+parser.add_argument('--src_data_path', type = str, default = '../data/train/imageBlur', help = 'The directory where the input data is stored.')
 parser.add_argument('--src_label_path', type = str, default = '../data/train/groundTruth.csv', help = 'The label file.')
 parser.add_argument('--output_file', type = str, default = 'experiment/train/output.csv', help = 'The directory where the summaries will be stored.') # 'experiments/'
 

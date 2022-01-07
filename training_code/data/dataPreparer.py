@@ -36,18 +36,18 @@ class DataPreparation(Dataset):
         img_path = os.path.join(self.data_path, data_file)
         image = Image.open(img_path) # plt.imread(img_path)
     
-        label = int(np.random.rand(1)[0] * 20)
-        image = image.filter(ImageFilter.GaussianBlur(radius = label))
+        # label = int(np.random.rand(1)[0] * 20)
+        # image = image.filter(ImageFilter.GaussianBlur(radius = label))
         if self.transform:
             image = self.transform(image)
             
-        # if self.label_path is None:
-        #     return image, -1, data_file
+        if self.label_path is None:
+            return image, -1, data_file
         
-        # label = self.file_labels['label'][self.file_labels['file'] == data_file].iloc[0]
+        label = self.file_labels['label'][self.file_labels['file'] == data_file].iloc[0]
 
-        # if self.target_transform:
-        #     label = self.target_transform(label)
+        if self.target_transform:
+            label = self.target_transform(label)
 
 
         return image, label, data_file
@@ -55,9 +55,11 @@ class DataPreparation(Dataset):
     def preprocess(self, data_path, label_path):
         self.data_files = os.listdir(data_path)
         self.data_files.sort()
-
-        # if label_path is not None:
-        #     self.file_labels = pd.read_csv(label_path)
+        # self.data_files = self.data_files[:int(128 * 300)]
+        # print(self.data_files)
+        
+        if label_path is not None:
+            self.file_labels = pd.read_csv(label_path)
         
 
 class Data:
@@ -73,12 +75,10 @@ class Data:
         # ])
 
         transform = transforms.Compose([
-            # transforms.RandomCrop(31),
             transforms.Resize(256),
             transforms.CenterCrop(224),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.485), std=(0.229)),
-            # transforms.Normalize(mean=(0.5), std=(0.5)),
         ])
         
         train_dataset = DataPreparation(root=args,  
@@ -94,10 +94,12 @@ class Data:
         
         test_data_path = data_path.replace('train', 'valid')
         test_label_path = label_path
+        final_test_label_path = label_path
         final_test_data_path = data_path.replace('train', 'test')
 
         if label_path is not None:
             test_label_path = label_path.replace('train', 'valid')
+            final_test_label_path = label_path.replace('train', 'test')
         
         test_dataset = DataPreparation(root=args,  
                                        data_path=test_data_path,
@@ -111,7 +113,7 @@ class Data:
 
         final_test_dataset = DataPreparation(root=args,  
                                              data_path=final_test_data_path,
-                                             label_path=label_path,
+                                             label_path=final_test_label_path,
                                              transform=transform)
         self.loader_final_test = DataLoader(
             final_test_dataset, batch_size=args.final_test_batch_size, shuffle=False, 

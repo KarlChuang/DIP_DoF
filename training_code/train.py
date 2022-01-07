@@ -79,7 +79,13 @@ def main():
     scheduler = StepLR(optimizer, args.lr_decay_step, gamma = args.lr_gamma)
 
     if args.resume:
-        ckpt = torch.load(args.source_dir + args.source_file, map_location = device)
+        ckpt = torch.load(args.resume, map_location = device)
+        state_dict = ckpt['state_dict']
+
+        model.load_state_dict(state_dict)
+        model = model.to(device)
+    
+        # ckpt = torch.load(args.source_dir + args.source_file, map_location = device)
         optimizer.load_state_dict(ckpt['optimizer'])
         scheduler.load_state_dict(ckpt['scheduler'])
 
