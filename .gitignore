@@ -3,4 +3,9 @@ result/*/checkpoint/*
 !result/*/checkpoint/model_best.pt
 training_code/experiment
 !training_code/data
+refine.py
+temp.py
+*.png
 **/__pycache__
+*/__pycache__
+.gitignore
