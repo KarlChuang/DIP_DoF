@@ -2,9 +2,13 @@ train_%:
 	python train.py \
 	--num_epochs 120 \
 	--arch $* \
-	--lr 0.005 \
+	--lr 0.001 \
 	--train_batch_size 128 \
-	--print_freq 100
+	--print_freq 10 \
+	--pretrained \
+	--source_dir ../result/$*/checkpoint/ \
+	--source_file model_best.pt \
+	--src_label_path ../data/train/groundTruth7000.csv
 
 continue_%:
 	python train.py \

@@ -269,5 +269,5 @@ def inference(args, loader_test, model, output_file_name):
   
 
 if __name__ == '__main__':
-    main(10)
+    main(20)
 

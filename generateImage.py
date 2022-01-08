@@ -55,7 +55,7 @@ def select_sharp(sharp):
     df = pd.read_csv(labelPath)
     data = df.loc[df['sharp'] > sharp].reset_index(drop=True)
     print(data.shape)
-    labelPath = rootdir.replace('image', 'sharp3.csv')
+    labelPath = rootdir.replace('image', 'sharp4.csv')
     data.to_csv(labelPath, index=False)
 
     rootdir = path.join('data', 'test', 'image')
@@ -63,7 +63,7 @@ def select_sharp(sharp):
     df = pd.read_csv(labelPath)
     data = df.loc[df['sharp'] > sharp].reset_index(drop=True)
     print(data.shape)
-    labelPath = rootdir.replace('image', 'sharp3.csv')
+    labelPath = rootdir.replace('image', 'sharp4.csv')
     data.to_csv(labelPath, index=False)
 
     rootdir = path.join('data', 'valid', 'image')
@@ -71,7 +71,7 @@ def select_sharp(sharp):
     df = pd.read_csv(labelPath)
     data = df.loc[df['sharp'] > sharp].reset_index(drop=True)
     print(data.shape)
-    labelPath = rootdir.replace('image', 'sharp3.csv')
+    labelPath = rootdir.replace('image', 'sharp4.csv')
     data.to_csv(labelPath, index=False)
 
 def move_to_valid():
@@ -94,18 +94,18 @@ def move_to_valid():
 def check(rootdir):
     for subdir, dirs, files in walk(rootdir):
         print(len(files))
-    sharpfile = rootdir.replace('imageBlur', 'groundTruth.csv')
+    sharpfile = rootdir.replace('imageBlur', 'groundTruth7000.csv')
     df = pd.read_csv(sharpfile)
     print(df.shape)
 
 def createLabel(rootdir):
-    sharpfile = rootdir.replace('imageSharp', 'sharp3.csv')
+    sharpfile = rootdir.replace('imageSharp', 'sharp4.csv')
     df = pd.read_csv(sharpfile)
     labelDf = { 'file': [], 'label': [] }
     for file in df['file']:
         blur(rootdir, file, labelDf)
     trainGT = pd.DataFrame(labelDf)
-    trainGT.to_csv(rootdir.replace('imageSharp', 'groundTruth.csv'), index=False)
+    trainGT.to_csv(rootdir.replace('imageSharp', 'groundTruth7000.csv'), index=False)
 
 
 def blur(dir, filename, gt):
@@ -130,14 +130,14 @@ if __name__ == '__main__':
     # rootdir = path.join('data', 'test', 'image')
     # sharpAll(rootdir)
 
-    # select_sharp(6500)
+    # select_sharp(7000)
     # move_to_valid()
 
 
 
-    createLabel(path.join('data', 'train', 'imageSharp'))
-    createLabel(path.join('data', 'valid', 'imageSharp'))
-    createLabel(path.join('data', 'test', 'imageSharp'))
+    # createLabel(path.join('data', 'train', 'imageSharp'))
+    # createLabel(path.join('data', 'valid', 'imageSharp'))
+    # createLabel(path.join('data', 'test', 'imageSharp'))
 
     check(path.join('data', 'train', 'imageBlur'))
     check(path.join('data', 'valid', 'imageBlur'))
