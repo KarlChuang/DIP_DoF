@@ -10,12 +10,10 @@ continue_%:
 	python train.py \
 	--num_epochs 120 \
 	--arch $* \
-	--lr 0.00005 \
+	--lr 0.0003 \
 	--train_batch_size 128 \
 	--print_freq 100 \
-	--pretrained \
-	--source_dir ../result/mobile2/checkpoint/ \
-	--source_file model_47.pt
+	--resume ../result/$*/checkpoint/model_31.pt
 
 setup_%:
 	-mkdir ../result
