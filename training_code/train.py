@@ -49,9 +49,17 @@ def main(classnum):
     # load training model
     # model = import_module(f'model.{args.arch}').__dict__[args.model]().to(device)
     model = models.mobilenet_v2()
+    model.classifier[0] = nn.Dropout(p=0.5)
     model.classifier[1] = nn.Linear(model.last_channel, classnum)
+    model.classifier = nn.Sequential(
+        model.classifier[0],
+        model.classifier[1],
+        nn.Softmax(),
+    )
     model.features[0][0] = nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1, bias=False)
     model.to(device)
+    # print(model)
+    # exit()
 
     # Load pretrained weights
     if args.pretrained:

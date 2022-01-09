@@ -15,6 +15,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import MultiStepLR as MultiStepLR
 from torch.optim.lr_scheduler import StepLR as StepLR
+import torchvision.models as models
 
 from data import dataPreparer
 
@@ -33,7 +34,8 @@ def main():
     # data loader
     loader = dataPreparer.Data(args,
                             data_path=args.src_data_path, 
-                            label_path=args.src_label_path)
+                            label_path=args.src_label_path,
+                            classnum=20)
     
     data_loader = loader.loader_train
     data_loader_eval = loader.loader_test
@@ -41,12 +43,25 @@ def main():
     
     # Create model
     print('=> Building model...')
-    model = import_module(f'model.{args.arch}').__dict__[args.model]().to(device)
+    # model = import_module(f'model.{args.arch}').__dict__[args.model]().to(device)
+    model = models.mobilenet_v2()
+    model.classifier[0] = nn.Dropout(p=0.5)
+    model.classifier[1] = nn.Linear(model.last_channel, 20)
+    model.classifier = nn.Sequential(
+        model.classifier[0],
+        model.classifier[1],
+        nn.Softmax(),
+    )
+    model.features[0][0] = nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1, bias=False)
+    model.to(device)
 
     plot_file_name = args.plot_csv
-    curve_pd = pd.read_csv(plot_file_name)
+    # curve_pd = pd.read_csv(plot_file_name)
+    # curve_pd0 = pd.read_csv(plot_file_name.replace('mobile5-2', 'mobile5'))
+    # curve_pd['epoch'] += 97
+    # curve_pd = pd.concat([curve_pd0, curve_pd])
     plot_fig_name = plot_file_name.replace('.csv', '.png')
-    plotting(curve_pd, plot_fig_name)
+    # plotting(curve_pd, plot_fig_name)
 
     ckpt = torch.load(args.source_dir + args.source_file, map_location = device)
     state_dict = ckpt['state_dict']
@@ -71,7 +86,7 @@ def confussion(args, loader_test, model, plt_name):
             y_true.extend(targets.view(-1).detach().cpu().numpy())
     cf_matrix = confusion_matrix(y_true, y_pred)
     per_cls_acc = cf_matrix.diagonal() / cf_matrix.sum(axis=0)
-    class_names = [str(i) for i in range(10)]
+    class_names = [str(i) for i in range(20)]
 
     df_cm = pd.DataFrame(cf_matrix, class_names, class_names)
     plt.figure(figsize = (9,6))
@@ -105,28 +120,20 @@ def test(args, loader_test, model):
 
     return (acc.avg, losses.avg)
 
-def saveCSV(csv_data, output_file_name):
-    output_file = dict()
-    output_file['epoch'] = csv_data[0]
-    output_file['train accuracy'] = csv_data[1]
-    output_file['train loss'] = csv_data[2]
-    output_file['test accuracy'] = csv_data[3]
-    output_file['test loss'] = csv_data[4]
-    output_file = pd.DataFrame.from_dict(output_file)
-    output_file.to_csv(output_file_name, index = False)
-    return output_file
-
 def plotting(pd_data, fig_name):
+    testpd = pd_data.loc[pd_data['test accuracy'] > 0].reset_index(drop=True)
+    trainpd = pd_data.loc[pd_data['train accuracy'] > 0].reset_index(drop=True)
+
     fig, axs = plt.subplots(2, figsize=(12,8))
     fig.tight_layout(pad=3.0)
     axs[0].set_title('Learning curve -- CrossEntropyLoss')
-    axs[0].plot(pd_data['epoch'], pd_data['train loss'], label='train loss')
-    axs[0].plot(pd_data['epoch'], pd_data['test loss'], label='test loss')
+    axs[0].plot(trainpd['epoch'], trainpd['train loss'], label='train loss')
+    axs[0].plot(testpd['epoch'], testpd['test loss'], label='test loss')
     axs[0].set_xlabel("epoch")
     axs[0].legend(loc="upper left")
     axs[1].set_title('Learning curve -- Accuracy')
-    axs[1].plot(pd_data['epoch'], pd_data['train accuracy'], label='train accuracy')
-    axs[1].plot(pd_data['epoch'], pd_data['test accuracy'], label='test accuracy')
+    axs[1].plot(trainpd['epoch'], trainpd['train accuracy'], label='train accuracy')
+    axs[1].plot(testpd['epoch'], testpd['test accuracy'], label='test accuracy')
     axs[1].set_xlabel("epoch")
     axs[1].legend(loc="upper left")
     fig.savefig(fig_name)

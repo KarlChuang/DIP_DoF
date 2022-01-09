@@ -6,6 +6,7 @@ training_code/experiment
 refine.py
 temp.py
 *.png
+*.jpg
 **/__pycache__
 */__pycache__
 .gitignore

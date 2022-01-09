@@ -26,8 +26,8 @@ import warnings, math
 
 warnings.filterwarnings("ignore")
 
-# device = torch.device(f"cuda:{args.gpus[0]}")
-device = torch.device("cpu")
+device = torch.device(f"cuda:{args.gpus[0]}")
+# device = torch.device("cpu")
 
 checkpoint = utils.checkpoint(args)
 
@@ -62,6 +62,8 @@ class DataPreparation(Dataset):
         # img = img.filter(ImageFilter.GaussianBlur(radius=5))
         # img.show()
         (width, height) = img.size
+        # img = img.resize((int(width / 2), int(height / 2)))
+        # (width, height) = img.size
         top = 0
         self.data_files = []
         self.data_indexs = []
@@ -76,7 +78,7 @@ class DataPreparation(Dataset):
 
 
 
-def main(img_path, step, test_batch_size):
+def main(img_path, model_path, out_path, step, test_batch_size, classnum):
     # Data loading
     print('=> Preparing data..')
 
@@ -102,7 +104,7 @@ def main(img_path, step, test_batch_size):
     # load training model
     # model = import_module(f'model.{args.arch}').__dict__[args.model]().to(device)
     model = models.mobilenet_v2()
-    model.classifier[1] = nn.Linear(model.last_channel, 20)
+    model.classifier[1] = nn.Linear(model.last_channel, classnum)
     model.features[0][0] = nn.Conv2d(1,
                                      32,
                                      kernel_size=3,
@@ -113,17 +115,19 @@ def main(img_path, step, test_batch_size):
     model.to(device)
 
     # Load pretrained weights
-    ckpt = torch.load('./result/mobile2/checkpoint/model_best.pt',
+    ckpt = torch.load(model_path,
                         map_location=device)
     state_dict = ckpt['state_dict']
 
     model.load_state_dict(state_dict)
     model = model.to(device)
     model.eval()
-    classes = np.array([i for i in range(20)])
+    classes = np.array([i for i in range(classnum)])
 
 
     img = Image.open(img_path).convert('L')
+    # img = img.resize((int(img.size[0] / 2), int(img.size[1] / 2)))
+
     imgArr = np.array(img)
 
     depth = np.zeros(imgArr.shape)
@@ -131,7 +135,7 @@ def main(img_path, step, test_batch_size):
     num_itr = len(loader_test)
     with torch.no_grad():
         for i, (inputs, targets, h, w) in enumerate(loader_test, 1):
-            print(i, num_itr)
+            print('{0}/{1}'.format(i, num_itr))
             inputs = inputs.to(device)
             preds = model(inputs)
             maxk = max((1,))
@@ -141,10 +145,11 @@ def main(img_path, step, test_batch_size):
                 depth[h[idx]:h[idx]+32,w[idx]:w[idx]+32] += float(d)
                 base[h[idx]:h[idx]+32,w[idx]:w[idx]+32] += 1
     base[base == 0] = 1
-    depth = (depth / base / 20 * 256).astype('uint8')
+    depth = (depth / base / (classnum - 1) * 255).astype('uint8')
     data = Image.fromarray(depth, 'L')
-    data.show()
+    data.save(out_path)
+    # data.show()
     # print(depthMap)
 
 if __name__ == '__main__':
-    main('test.png', 8, 32)
+    main('./data/test/image/0842.png', './result/mobile5-2/checkpoint/model_best.pt', '0842_depth2.png', 2, 128, 20)
