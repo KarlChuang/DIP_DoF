@@ -9,3 +9,4 @@ temp.py
 *.jpg
 **/__pycache__/
 data_send
+*.DS_Store

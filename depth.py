@@ -26,8 +26,7 @@ import warnings, math
 
 warnings.filterwarnings("ignore")
 
-device = torch.device(f"cuda:{args.gpus[0]}")
-# device = torch.device("cpu")
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
 checkpoint = utils.checkpoint(args)
 
