@@ -1,4 +1,7 @@
 data
+!data/train/groundTruth7000.csv
+!data/valid/groundTruth7000.csv
+!data/test/groundTruth7000.csv
 result/*/checkpoint/*
 !result/*/checkpoint/model_best.pt
 training_code/experiment
