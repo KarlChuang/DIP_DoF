@@ -48,8 +48,5 @@ plot_%:
 eval_%:
 	python train.py --inference_only --pretrained --source_dir ./experiment/train/checkpoint/ --output_file ./experiment/train/output.csv --arch $*
 
-upload_%:
-	kaggle competitions submit -c ntuds-2021-digit-recognition -f ../result/$*/output.csv -m "$*"
-
 clean:
 	rm -rf experiment
