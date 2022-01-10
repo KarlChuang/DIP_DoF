@@ -1,13 +1,13 @@
 train_%:
 	python train.py \
-	--num_epochs 120 \
+	--num_epochs 1200 \
 	--arch $* \
 	--lr 0.001 \
 	--train_batch_size 128 \
 	--print_freq 10 \
 	--src_label_path ../data/train/groundTruth7000.csv \
 	--src_data_path ../data/train/imageBlur \
-	--lr_gamma 1 \
+	--lr_gamma 0.5 \
 	--lr_decay_step 20
 # --pretrained \
 # --source_dir ./experiment/train/checkpoint/ \

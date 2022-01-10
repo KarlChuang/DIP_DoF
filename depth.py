@@ -151,4 +151,4 @@ def main(img_path, model_path, out_path, step, test_batch_size, classnum):
     # print(depthMap)
 
 if __name__ == '__main__':
-    main('./data/test/image/0842.png', './result/mobile5-2/checkpoint/model_best.pt', '0842_depth2.png', 2, 128, 20)
+    main('test.png', './result/mobile5-2/checkpoint/model_best.pt', 'test_depth.png', 2, 128, 20)

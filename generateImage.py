@@ -134,14 +134,14 @@ if __name__ == '__main__':
     # rootdir = path.join('data', 'test', 'image')
     # sharpAll(rootdir)
 
-    # select_sharp(5000)
+    select_sharp(5000)
     # move_to_valid()
 
 
 
-    # createLabel(path.join('data', 'train', 'imageSharp'))
-    # createLabel(path.join('data', 'valid', 'imageSharp'))
-    # createLabel(path.join('data', 'test', 'imageSharp'))
+    createLabel(path.join('data', 'train', 'imageSharp'))
+    createLabel(path.join('data', 'valid', 'imageSharp'))
+    createLabel(path.join('data', 'test', 'imageSharp'))
 
     check(path.join('data', 'train', 'imageBlur5000'))
     check(path.join('data', 'valid', 'imageBlur5000'))
