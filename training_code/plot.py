@@ -56,12 +56,12 @@ def main():
     model.to(device)
 
     plot_file_name = args.plot_csv
-    # curve_pd = pd.read_csv(plot_file_name)
+    curve_pd = pd.read_csv(plot_file_name)
     # curve_pd0 = pd.read_csv(plot_file_name.replace('mobile5-2', 'mobile5'))
     # curve_pd['epoch'] += 97
     # curve_pd = pd.concat([curve_pd0, curve_pd])
     plot_fig_name = plot_file_name.replace('.csv', '.png')
-    # plotting(curve_pd, plot_fig_name)
+    plotting(curve_pd, plot_fig_name)
 
     ckpt = torch.load(args.source_dir + args.source_file, map_location = device)
     state_dict = ckpt['state_dict']
